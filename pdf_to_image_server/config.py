@@ -10,7 +10,7 @@ from pdf_to_image_server.log_init import logger
 
 load_dotenv()
 
-from pdf_image_ocr.config import cfg
+from pdf_ocr.pdf_image_ocr.config import cfg
 
 logger.info("Pytesseract command: %s", pytesseract.pytesseract.tesseract_cmd)
 

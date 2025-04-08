@@ -1,5 +1,8 @@
 from pathlib import Path
 import os
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi import File, UploadFile
@@ -8,7 +11,7 @@ from pdf_to_image_server.config import cfg
 from pdf_to_image_server.log_init import logger
 from pdf_to_image_server.caching import read_file, write_file
 
-from pdf_image_ocr.image_ocr import convert_img_to_text
+from pdf_ocr.pdf_image_ocr.image_ocr import convert_img_to_text
 
 import uvicorn
 
@@ -82,6 +85,10 @@ async def read_item(file_name: str):
     return message_factory(file_name, "", CODE_FAIL)
 
 
+@app.get("/")
+def read_root():
+    return {"Hello": "PDF to Image Server"}
+
 if __name__ == '__main__':
     logger.info("Fast API server starting on port: %s", cfg.fast_api_port)    
-    uvicorn.run(app, host="0.0.0.0", port=cfg.fast_api_port)
+    uvicorn.run(app, port=cfg.fast_api_port)
