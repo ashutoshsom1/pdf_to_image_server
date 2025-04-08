@@ -33,35 +33,49 @@ def message_factory(file_name: str, contents: str, code: str) -> dict:
     return {
         "code": code,
         "message": f"Successfully uploaded {file_name}",
-        "extracted_text": contents
+        "extracted_text": contents,  # ensure this key matches
+        "status": "success"
     }
 
 
 @app.post("/upload")
 def upload(file: UploadFile = File(...)):
-    cached_contents = read_file(file.filename)
-    if cached_contents is not None:
-        return message_factory(file.filename, cached_contents, CODE_OK)
     try:
+        cached_contents = read_file(file.filename)
+        if cached_contents is not None:
+            return message_factory(file.filename, cached_contents, CODE_OK)
+        
         contents = file.file.read()
         logger.info("Upload received")
         tmp_path = cfg.temp_file_path
         file_path: Path = tmp_path/file.filename
+        
         with open(file_path, 'wb') as f:
             f.write(contents)
-            extracted_text = convert_img_to_text(file_path)
+            
+        extracted_text = convert_img_to_text(file_path)
+        if extracted_text:
             write_file(content=extracted_text, file_name=file.filename)
             return message_factory(file.filename, extracted_text, CODE_OK)
-    except Exception:
-        logger.exception("An error occurred during file uplodate")
-        return {'code': CODE_FAIL, "message": "There was an error uploading the file"}
+        else:
+            return {
+                'code': CODE_FAIL,
+                'message': "Failed to extract text from PDF",
+                'extracted_text': ""
+            }
+            
+    except Exception as e:
+        logger.exception("An error occurred during file upload")
+        return {
+            'code': CODE_FAIL,
+            'message': f"Error processing file: {str(e)}",
+            'extracted_text': ""
+        }
     finally:
         try:
             file.file.close()
-            if file_path and file_path.exists:
-                    os.remove(file_path)
-        except Exception:
-            logger.exception("Could not delete file.")
+        except:
+            pass
 
 
 
