@@ -44,4 +44,5 @@ FAST_API_PORT=8000
 
 ```
 python .\pdf_to_image_server\server.py
+python -m uvicorn pdf_to_image_server.server:app
 ```
